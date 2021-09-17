@@ -2484,6 +2484,21 @@ class WT0124Packet(Packet):
         pkt = Packet.add_identifiers(pkt, sensor_id, WT0124Packet.__name__)
         return pkt
 
+class SHT20Packet(Packet):
+    # SHT20 over i2c addr 0x40 local to this machine
+    IDENTIFIER = "SHT20i2c"
+
+    from sensor import SHT20
+    thing = SHT20(1, 0x40)
+
+    @staticmethod
+    def add_to_packet(pkt):
+        v = SHT20Packet.thing.all()
+        postfix = ".1_40." + SHT20Packet.__name__
+        pkt['humidity' + postfix] = v[0].RH;
+        pkt['temperature' + postfix] = v[1].F if pkt.get('usUnits') == weewx.US else v[1].C
+        return pkt
+
 
 class PacketFactory(object):
 
@@ -2561,6 +2576,7 @@ class PacketFactory(object):
             else:
                 pkt = PacketFactory.parse_text(lines)
             if pkt is not None:
+                pkt = SHT20Packet.add_to_packet(pkt)
                 yield pkt
 
     @staticmethod
