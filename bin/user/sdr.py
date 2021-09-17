@@ -471,7 +471,9 @@ class Acurite5n1PacketV2(Packet):
                 pkt['wind_speed'] *= 0.621371
         if 'wind_dir_deg' in obj:
             pkt['wind_dir'] = Packet.get_float(obj, 'wind_dir_deg')
-        if 'rain_mm' in obj:
+        if 'rain_in' in obj:
+            pkt['rain_total'] = Packet.get_float(obj, 'rain_in')
+        elif 'rain_mm' in obj:
             pkt['rain_total'] = Packet.get_float(obj, 'rain_mm')
             if pkt['rain_total'] is not None:
                 # Convert to inches
