@@ -1423,7 +1423,7 @@ class FOWH65BPacket(Packet):
     # mic : CRC
 
     # {"time" : "2018-10-10 13:37:02", "model" : "Fine Offset WH65B", "id" : 89, "temperature_C" : 17.600, "humidity" : 93, "wind_dir_deg" : 224, "wind_speed_ms" : 1.540, "gust_speed_ms" : 2.240, "rainfall_mm" : 325.500, "uv" : 130, "uvi" : 0, "light_lux" : 13454.000, "battery" : "OK", "mic" : "CRC"}
-    IDENTIFIER = "Fine Offset WH65B"
+    IDENTIFIER = "Fineoffset-WH65B"
 
     @staticmethod
     def parse_json(obj):
@@ -1434,13 +1434,14 @@ class FOWH65BPacket(Packet):
         pkt['temperature'] = Packet.get_float(obj, 'temperature_C')
         pkt['humidity'] = Packet.get_float(obj, 'humidity')
         pkt['wind_dir'] = Packet.get_float(obj, 'wind_dir_deg')
-        pkt['wind_speed'] = Packet.get_float(obj, 'wind_speed_ms')
-        pkt['wind_gust'] = Packet.get_float(obj, 'gust_speed_ms')
-        pkt['rain_total'] = Packet.get_float(obj, 'rainfall_mm')
+        pkt['wind_speed'] = Packet.get_float(obj, 'wind_avg_m_s')
+        pkt['wind_gust'] = Packet.get_float(obj, 'wind_max_m_s')
+        pkt['rain_total'] = Packet.get_float(obj, 'rain_mm')
         pkt['uv'] = Packet.get_float(obj, 'uv')
         pkt['uv_index'] = Packet.get_float(obj, 'uvi')
-        pkt['light'] = Packet.get_float(obj, 'light_lux')
-        pkt['battery'] = 0 if obj.get('battery') == 'OK' else 1
+        pkt['light'] =  Packet.get_float(obj, 'light_lux')
+        pkt['radiance'] = pkt['light'] / 122.0
+        pkt['battery'] = 0 if obj.get('battery', None) == 'OK' or obj.get('battery_ok', None) == '1' else 1
         return FOWH65BPacket.insert_ids(pkt)
 
     @staticmethod
