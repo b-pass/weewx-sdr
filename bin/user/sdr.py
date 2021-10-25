@@ -241,11 +241,13 @@ class ProcManager(object):
 
     def get_stdout(self):
         lines = []
+        last = time.time()
         while self.running():
             try:
                 # Fetch the output line. For it to be searched, Python 3 requires that
-                # it be decoded to unicode. Decoding does no harm under Python 2:
+                # it be decoded to unicode. Decoding does no harm under Python 2.
                 line = self.stdout_queue.get(True, 3).decode()
+                last = time.time()
                 m = ProcManager.TS.search(line)
                 if m and lines:
                     yield lines
@@ -254,6 +256,8 @@ class ProcManager(object):
             except queue.Empty:
                 yield lines
                 lines = []
+                if time.time() - last > 300:
+                    raise weewx.WeeWxIOError('No input for %f seconds' % ((time.time() - last)))
         yield lines
 
 
@@ -1442,6 +1446,7 @@ class FOWH65BPacket(Packet):
         pkt['light'] =  Packet.get_float(obj, 'light_lux')
         pkt['radiance'] = pkt['light'] / 122.0
         pkt['battery'] = 0 if obj.get('battery', None) == 'OK' or obj.get('battery_ok', None) == '1' else 1
+        pkt['rssi'] = Packet.get_float(obj, 'rssi')
         return FOWH65BPacket.insert_ids(pkt)
 
     @staticmethod
