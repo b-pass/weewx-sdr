@@ -1444,7 +1444,7 @@ class FOWH65BPacket(Packet):
         pkt['uv'] = Packet.get_float(obj, 'uv')
         pkt['uv_index'] = Packet.get_float(obj, 'uvi')
         pkt['light'] =  Packet.get_float(obj, 'light_lux')
-        pkt['radiance'] = pkt['light'] / 122.0
+        pkt['radiance'] = pkt['light'] / 122.0 if pkt['light'] else None
         pkt['battery'] = 0 if obj.get('battery', None) == 'OK' or obj.get('battery_ok', None) == '1' else 1
         pkt['rssi'] = Packet.get_float(obj, 'rssi')
         return FOWH65BPacket.insert_ids(pkt)
