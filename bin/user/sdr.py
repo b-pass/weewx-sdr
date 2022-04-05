@@ -208,6 +208,8 @@ class ProcManager(object):
 
     def shutdown(self):
         loginf('shutdown process %s' % self._cmd)
+        self._process.terminate()
+        time.sleep(1)
         logdbg('waiting for %s' % self.stdout_reader.getName())
         self.stdout_reader.stop_running()
         self.stdout_reader.join(10.0)
@@ -220,14 +222,15 @@ class ProcManager(object):
         if self.stderr_reader.isAlive():
             loginf('timed out waiting for %s' % self.stderr_reader.getName())
         self.stderr_reader = None
-        logdbg("close stdout")
-        self._process.stdout.close()
-        logdbg("close stderr")
-        self._process.stderr.close()
-        logdbg('kill process')
-        self._process.kill()
-        if self._process.poll() is None:
-            logerr('process did not respond to kill, shutting down anyway')
+        #logdbg("close stdout")
+        #self._process.stdout.close()
+        #logdbg("close stderr")
+        #self._process.stderr.close()
+        if self.running():
+            loginf('kill process')
+            self._process.kill()
+            if self.running():
+                logerr('process did not respond to kill, shutting down anyway')
         self._process = None
 
     def running(self):
