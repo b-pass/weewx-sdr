@@ -1709,6 +1709,9 @@ class FOWH65BPacket(Packet):
         pkt['uv_index'] = Packet.get_float(obj, 'uvi')
         pkt['light'] =  Packet.get_float(obj, 'light_lux')
         pkt['radiance'] = pkt['light'] / 122.0 if pkt['light'] else None
+        if pkt['radiance'] and pkt['radiance'] > 1400:
+            del pkt['radiance']
+            del pkt['light']
         pkt['battery'] = 0 if obj.get('battery', None) == 'OK' or obj.get('battery_ok', None) == '1' else 1
         pkt['rssi'] = Packet.get_float(obj, 'rssi')
         return FOWH65BPacket.insert_ids(pkt)
@@ -3136,20 +3139,27 @@ class WT0124Packet(Packet):
         pkt = Packet.add_identifiers(pkt, sensor_id, WT0124Packet.__name__)
         return pkt
 
+
+from sensor import SHT20
 class SHT20Packet(Packet):
     # SHT20 over i2c addr 0x40 local to this machine
     IDENTIFIER = "SHT20i2c"
 
-    from sensor import SHT20
-    thing = SHT20(1, 0x40)
+    thing = None
 
     @staticmethod
     def add_to_packet(pkt):
-        v = SHT20Packet.thing.all()
-        postfix = ".1_40." + SHT20Packet.__name__
-        pkt['humidity' + postfix] = v[0].RH;
-        pkt['temperature' + postfix] = v[1].F if pkt.get('usUnits') == weewx.US else v[1].C
+        try:
+          if not SHT20Packet.thing:
+              SHT20Packet.thing = SHT20(1, 0x40)
+          v = SHT20Packet.thing.all()
+          postfix = ".1_40." + SHT20Packet.__name__
+          pkt['humidity' + postfix] = v[0].RH;
+          pkt['temperature' + postfix] = v[1].F if pkt.get('usUnits') == weewx.US else v[1].C
+        except Exception as e:
+          logerr(f"Failed to read from SHT20: {str(e)}")
         return pkt
+
 
 
 class PacketFactory(object):
@@ -3363,8 +3373,10 @@ class SDRDriver(weewx.drivers.AbstractDevice):
         for k in self._deltas:
             label = self._deltas[k]
             if label in pkt:
-                pkt[k] = self._calculate_delta(
+                x = self._calculate_delta(
                     label, pkt[label], self._counter_values.get(label))
+                if x is not None:
+                    pkt[k] = x
                 self._counter_values[label] = pkt[label]
 
     @staticmethod
