@@ -1,3 +1,72 @@
+0.96b1
+* added support for EMAX EM3551H sensors - raddy station (#192 alpha-sg31)
+* added support for Vivor7in1 - thanks to ivan
+* fixed battery status for oregon scientific sensors (#190)
+* added support for AmbientTX8300 (#189 mrneutron42)
+* note compatibility for Cotech 36-7959 detection
+* fix units and rain in Cotech 36-7959
+* fix rain_total/total_rain confusion in Vevor7in1
+* fix rain_total/total_rain confusion in WS2032
+* fix rain_total/total_rain confusion in Cotech367959
+* fix rain_total/total_rain confusion in EM3551H
+* fix rain_total/total_rain confusion in OSRGR968
+* fix sensor_id in TFA packets
+* added freq, rssi, snr, noise to WS90, WH32B, WH40 packets (thanks jpochmara)
+* added RubicsonTempPacketV2 (#175)
+* added WS68 packet, but fields are not confirmed (issue #167)
+* added support for EsperanzaEWS, thanks to Sar6e (issue #158)
+* use lightning_strike_count as default delta so it matches the weewx schema
+
+0.95 28dec2024
+* update AlectoV1 signatures, fields, and units
+* push battery mapping into Packet class
+
+0.94 28dec2024
+* update README for WeeWX v5 semantics
+* attempt to merge all of the diverging packet formats/versions/variants
+    WARNING: this will break many sensor_map definitions that use fine offset!
+* added options log_packets and log_duplicate_readings (#184 vinceskahan)
+* added support for WH31B and WH32 sensors (#184 vinceskahan)
+* added support for TFADrop and TFARainPro rain gauage (#191 peted-davis)
+* added support for LaCrosse TX141Bv3 (#174 gedakc)
+* added support for WH32, WS90, WH45 sensors (#164 mfraser)
+* support latest (?) WH32 and WH65B mappings (#154 mrpenner)
+* fixed bug in TS-FT002 (#173 sar6e)
+* fixed battery status for UVN800 and BTHR968 (#151 olpayras)
+* fixed device->id for house_code in F007TH (#171 jaredmales)
+* fixed bug in Prologue-TH parsing (#147 bobhruska)
+* rollup of many fixes curated by andylittle (#150)
+
+0.93 12nov2023
+* change rc to id in Hideki Rain/Wind, thanks to promy (#181)
+
+0.92 12nov2023
+* fixed typo in Acurite-515 parse json
+
+0.91 12june2023
+* add bresser 7in1 thanks to farmabep (179)
+
+0.90 09sept2022
+* cleanup Fineoffset-WH0290 identifier and fields, add battery (#166 farmabep)
+
+0.90 07jul2022
+* add battery voltage for WS80 thanks to fankyy (#153)
+
+0.90 06jul2022
+* add json pars section for WS80 thanks to fankyy (#153)
+
+0.90 22jun2022
+* add json pars section for Kedsum-TH thanks to user Sar6e (#157)
+
+0.90 20jun2022
+* add json pars section for TFA-Drop thanks to user modussiam (#156)
+
+0.89 07jun2022
+* add json parse section for Oregon THR228N thanks to user modussiam
+
+0.88 03mar2022
+* fixed typo in method for THPacket thanks to olpayras (#149)
+
 0.87 21jan2021
 * added support for Acurite515 refrigerator/freezer sensors
 * added support for LaCross LTV-R3 rain sensor thanks to srhuston (#145)
