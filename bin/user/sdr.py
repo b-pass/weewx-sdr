@@ -318,7 +318,7 @@ class ProcManager(object):
             except queue.Empty:
                 yield lines
                 lines = []
-                if time.time() - last > 300:
+                if time.time() - last > 600:
                     raise weewx.WeeWxIOError('No input for %f seconds' % ((time.time() - last)))
         yield lines
 
@@ -2076,8 +2076,7 @@ class FOWH65BPacket(Packet):
     # mic : CRC
 
     # {"time" : "2018-10-10 13:37:02", "model" : "Fine Offset WH65B", "id" : 89, "temperature_C" : 17.600, "humidity" : 93, "wind_dir_deg" : 224, "wind_speed_ms" : 1.540, "gust_speed_ms" : 2.240, "rainfall_mm" : 325.500, "uv" : 130, "uvi" : 0, "light_lux" : 13454.000, "battery" : "OK", "mic" : "CRC"}
-    IDENTIFIER = "Fineoffset-WH65B"
-    #IDENTIFIER = "Fine Offset WH65B"
+    IDENTIFIER = "Fine Offset WH65B"
 
     @staticmethod
     def parse_json(obj):
@@ -2088,20 +2087,15 @@ class FOWH65BPacket(Packet):
         pkt['temperature'] = Packet.get_float(obj, 'temperature_C')
         pkt['humidity'] = Packet.get_float(obj, 'humidity')
         pkt['wind_dir'] = Packet.get_float(obj, 'wind_dir_deg')
-        pkt['wind_speed'] = Packet.get_float(obj, 'wind_avg_m_s')
-        pkt['wind_gust'] = Packet.get_float(obj, 'wind_max_m_s')
-        pkt['rain_total'] = Packet.get_float(obj, 'rain_mm')
+        pkt['wind_speed'] = Packet.get_float(obj, 'wind_speed_ms')
+        pkt['wind_gust'] = Packet.get_float(obj, 'gust_speed_ms')
+        pkt['rain_total'] = Packet.get_float(obj, 'rainfall_mm')
         pkt['uv'] = Packet.get_float(obj, 'uv')
         pkt['uv_index'] = Packet.get_float(obj, 'uvi')
-        pkt['light'] =  Packet.get_float(obj, 'light_lux')
-        pkt['radiance'] = pkt['light'] / 122.0 if pkt['light'] else None
-        if pkt['radiance'] and pkt['radiance'] > 1400:
-            del pkt['radiance']
-            del pkt['light']
-        pkt['battery'] = 0 if obj.get('battery', None) == 'OK' or obj.get('battery_ok', None) == '1' else 1
-        pkt['rssi'] = Packet.get_float(obj, 'rssi')
-        return Packet.add_identifiers(pkt, sensor_id, FOWH65BPacket.__name__)
-
+        pkt['light'] = Packet.get_float(obj, 'light_lux')
+        pkt['battery'] = Packet.get_battery(obj)
+        pkt = Packet.add_identifiers(pkt, sensor_id, FOWH65BPacket.__name__)
+        return pkt
 
 class FOWH65BAltPacket(Packet):
     # This is for a WH65B sensor array that identifies itself as
@@ -2151,6 +2145,42 @@ class FOWH65BAltPacket(Packet):
         pkt = Packet.add_identifiers(pkt, sensor_id, FOWH65BAltPacket.__name__)
         return pkt
 
+class FOWS69Packet(Packet):
+    #
+    # This is for a WS69 sensor array that identifies itself as
+    # Fineoffset-WS69. Several mappings are also different from the other
+    # WH65B. This configuration was tested on an Ambient Weather WS-2902A kit.
+    #
+    # {"time" : "2025-12-20 01:10:15", "model" : "Fineoffset-WS69", "id" : 220, "battery_ok" : 1, "temperature_C" : 1.900, "humidity" : 50, "wind_dir_deg" : 283, "wind_avg_m_s" : 2.359, "wind_max_m_s" : 2.550, "rain_mm" : 0.508, "uv" : 0, "uvi" : 0.000, "light_lux" : 0.000, "mic" : "CRC", "mod" : "FSK", "freq1" : 914.974, "freq2" : 915.024, "rssi" : -16.404, "snr" : 25.740, "noise" : -42.144}
+
+    IDENTIFIER = "Fineoffset-WS69"
+
+    @staticmethod
+    def parse_json(obj):
+        sensor_id = obj.get('id')
+        pkt = dict()
+        pkt['dateTime'] = Packet.parse_time(obj.get('time'))
+        pkt['usUnits'] = weewx.METRICWX
+        pkt['temperature'] = Packet.get_float(obj, 'temperature_C')
+        pkt['humidity'] = Packet.get_float(obj, 'humidity')
+        pkt['wind_dir'] = Packet.get_float(obj, 'wind_dir_deg')
+        pkt['wind_speed'] = Packet.get_float(obj, 'wind_avg_m_s')
+        pkt['wind_gust'] = Packet.get_float(obj, 'wind_max_m_s')
+        pkt['rain_total'] = Packet.get_float(obj, 'rain_mm')
+        pkt['uv'] = Packet.get_float(obj, 'uv') # superfluous?
+        pkt['uv_index'] = Packet.get_float(obj, 'uvi')
+        pkt['light'] = Packet.get_float(obj, 'light_lux')
+        pkt['battery'] = Packet.get_battery(obj)
+        pkt['rssi'] = Packet.get_float(obj, 'rssi')
+        pkt['snr'] = Packet.get_float(obj, 'snr')
+        pkt['noise'] = Packet.get_float(obj, 'noise')
+
+        pkt['radiance'] = pkt['light'] / 122.0 if pkt['light'] else None
+        if pkt['radiance'] and pkt['radiance'] > 1400:
+            del pkt['radiance']
+
+        pkt = Packet.add_identifiers(pkt, sensor_id, FOWS69Packet.__name__)
+        return pkt
 
 class FOWH0290Packet(Packet):
     # This is for a WH0290 Air Quality Monitor (Ambient Weather PM25)
